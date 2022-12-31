@@ -28,6 +28,32 @@ class UserRepository {
       throw error;
     }
   }
+
+  async getById(id) {
+    try {
+      const user = await User.findByPk(id, {
+        attributes: ["id", "email"],
+      });
+      return user;
+    } catch (error) {
+      console.log("Some Error Occursed in Repository Layer");
+      throw error;
+    }
+  }
+
+  async getUserByEmail(userEmail) {
+    try {
+      const user = await User.findOne({
+        where: {
+          email: userEmail,
+        },
+      });
+      return user;
+    } catch (error) {
+      console.log("Some Error Occursed in Repository Layer");
+      throw error;
+    }
+  }
 }
 
 module.exports = UserRepository;
