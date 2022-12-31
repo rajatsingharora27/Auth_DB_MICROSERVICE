@@ -1,7 +1,7 @@
 const user = require("../models/user");
 const jwt = require("jsonwebtoken");
 const { UserRepository } = require("../repository/index");
-const { SECTER_KEY } = require("../config/serverConfig");
+const { JWT_KEY } = require("../config/serverConfig");
 const { FAIL, SUCCESS } = require("../utils/responseConstants");
 const bcrypt = require("bcrypt");
 class UserService {
@@ -53,10 +53,12 @@ class UserService {
 
       // console.log("user Verified", verficationReponse.message);
       if (verficationReponse.status === SUCCESS) {
+        console.log("verified");
         const jwt = this.#generateToken({
           email: userFromDB.email,
           id: userFromDB.id,
         });
+        console.log(jwt);
         return jwt;
       } else {
         throw verficationReponse.message;
@@ -69,6 +71,7 @@ class UserService {
 
   async #verifyUser(userFromDB, data) {
     let response = {};
+    // console.log(userFromDB, data);
     try {
       if (userFromDB.email !== data.email) {
         console.log("Email entered is not correct");
@@ -76,7 +79,7 @@ class UserService {
         response.status = "fail";
         return response;
       }
-      if (bcrypt.compareSync(data.password, userFromDB.password)) {
+      if (!bcrypt.compareSync(data.password, userFromDB.password)) {
         console.log("Password entered is not correct");
         response.message = "Password incorrect";
         response.status = "fail";

@@ -40,6 +40,7 @@ const deleteUser = async (req, res) => {
 const signIn = async (req, res) => {
   try {
     const response = await userService.signIn(req.body);
+    console.log(response);
     return res.status(200).json({
       data: response,
       success: true,
