@@ -1,4 +1,3 @@
-const user = require("../models/user");
 const jwt = require("jsonwebtoken");
 const { UserRepository } = require("../repository/index");
 const { JWT_KEY } = require("../config/serverConfig");
@@ -103,12 +102,30 @@ class UserService {
     }
   }
 
-  async #verifyToken(token) {
+  verifyToken(token) {
     try {
-      const response = jwt.verify(token, SECTER_KEY);
+      const response = jwt.verify(token, JWT_KEY);
+      console.log(response);
       return response;
     } catch (error) {
-      console.log("Some error in servicelayer in verifyToken()");
+      console.log("Something went wrong in token validation", error);
+      throw error;
+    }
+  }
+
+  async isAuthenticated(token) {
+    try {
+      const response = this.verifyToken(token);
+      if (!response) {
+        throw { error: "Invalid token" };
+      }
+      const user = await this.userRepository.getById(response.id);
+      if (!user) {
+        throw { error: "No user with the corresponding token exists" };
+      }
+      return user.id;
+    } catch (error) {
+      console.log("Something went wrong in the auth process");
       throw error;
     }
   }

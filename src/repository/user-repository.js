@@ -30,10 +30,13 @@ class UserRepository {
   }
 
   async getById(id) {
+    console.log(id);
     try {
       const user = await User.findByPk(id, {
         attributes: ["id", "email"],
       });
+      // const user = await User.findByPk(10);
+      console.log(user);
       return user;
     } catch (error) {
       console.log("Some Error Occursed in Repository Layer");
