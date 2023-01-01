@@ -7,5 +7,6 @@ router.post("/signUp", ValidatainSignUpAndSignIn, UserController.createUser);
 router.delete("/deleteUser", UserController.deleteUser);
 router.post("/signIn", ValidatainSignUpAndSignIn, UserController.signIn);
 router.get("/isAuthenticated", UserController.isAuthenticated);
+router.get("/isAdmin", UserController.isAdmin);
 
 module.exports = router;

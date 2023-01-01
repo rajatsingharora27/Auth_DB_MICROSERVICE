@@ -3,6 +3,9 @@ const { UserRepository } = require("../repository/index");
 const { JWT_KEY } = require("../config/serverConfig");
 const { FAIL, SUCCESS } = require("../utils/responseConstants");
 const bcrypt = require("bcrypt");
+const { StatusCodes } = require("http-status-codes");
+const ValidataionError = require("../utils/validatation-error");
+const AttributeError = require("../utils/attribute-error");
 class UserService {
   constructor() {
     this.userRepository = new UserRepository();
@@ -19,8 +22,16 @@ class UserService {
       );
       return user;
     } catch (error) {
+      if (error.name == "SequelizeValidationError") {
+        throw error;
+      }
       console.log("Error in the Service layer");
-      throw error;
+      throw new ValidataionError(
+        "Server Error",
+        "Something went wrong in service",
+        "Logical error issue found",
+        500
+      );
     }
   }
 
@@ -39,11 +50,16 @@ class UserService {
     try {
       //need to check if the email if or password enterd by used is ther in db
       const userFromDB = await this.userRepository.getUserByEmail(data.email);
-
-      if (userFromDB === null) {
-        throw "User do not exist";
+      if (!userFromDB) {
+        throw new AttributeError(
+          "AttributeError",
+          "verify the entered Email",
+          "Record releated to enterd Email is not present in the database",
+          StatusCodes.NOT_FOUND
+        );
       }
       //get the plainPassword and email;
+
       const verficationReponse = await this.#verifyUser(userFromDB, data).then(
         (response) => {
           return response;
@@ -102,28 +118,38 @@ class UserService {
     }
   }
 
-  verifyToken(token) {
+  #verifyToken(token) {
     try {
       const response = jwt.verify(token, JWT_KEY);
       console.log(response);
       return response;
     } catch (error) {
-      console.log("Something went wrong in token validation", error);
+      console.log("Some error in servicelayer in verifyToken()");
       throw error;
     }
   }
 
   async isAuthenticated(token) {
     try {
-      const response = this.verifyToken(token);
+      const response = this.#verifyToken(token);
+      console.log(response.email);
       if (!response) {
-        throw { error: "Invalid token" };
+        throw { error: "Invalid Token" };
       }
       const user = await this.userRepository.getById(response.id);
       if (!user) {
-        throw { error: "No user with the corresponding token exists" };
+        throw { error: "No user with this token id present" };
       }
       return user.id;
+    } catch (error) {
+      console.log("Something went wrong in the auth process");
+      throw error;
+    }
+  }
+
+  async isAdmin(userId) {
+    try {
+      return await this.userRepository.isAdmin(userId);
     } catch (error) {
       console.log("Something went wrong in the auth process");
       throw error;

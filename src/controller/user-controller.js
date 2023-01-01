@@ -11,10 +11,11 @@ const createUser = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({
+    return res.status(error.statusCode).json({
       data: {},
       success: false,
-      message: error,
+      message: error.message,
+      errorList: error.explanation,
     });
   }
 };
@@ -76,9 +77,27 @@ const isAuthenticated = async (req, res) => {
   }
 };
 
+const isAdmin = async (req, res) => {
+  try {
+    const response = await userService.isAdmin(req.body.userId);
+    return res.status(200).json({
+      data: response,
+      success: true,
+      message: "User is Admin or Not",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      data: {},
+      success: false,
+      message: "Not an Admin",
+    });
+  }
+};
+
 module.exports = {
   createUser,
   deleteUser,
   signIn,
   isAuthenticated,
+  isAdmin,
 };
